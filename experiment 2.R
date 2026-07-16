@@ -1,4 +1,14 @@
-# Customer Satisfaction Dataset
+# Install packages (Run only once)
+install.packages("slam")
+install.packages("tm")
+install.packages("wordcloud")
+
+# Load packages
+library(slam)
+library(tm)
+library(wordcloud)
+
+# Dataset
 age <- c(25,30,35,28,40)
 score <- c(4,5,3,4,5)
 
@@ -7,11 +17,12 @@ hist(age,
      main="Customer Age Distribution",
      xlab="Age",
      ylab="Frequency",
-     col="lightblue")
+     col="lightblue",
+     border="black")
 
 # 2. Pie Chart
 pie(table(score),
-    labels=c("3","4","5"),
+    labels=paste("Score", names(table(score))),
     main="Customer Satisfaction Scores",
     col=c("yellow","green","pink"))
 
@@ -26,11 +37,28 @@ barplot(data,
         xlab="Satisfaction Score",
         ylab="Count")
 
-# 4. Customer Feedback (Alternative to Word Cloud)
-feedback <- c("Good","Excellent","Good","Fast","Excellent")
+# 4. Word Cloud
+feedback <- c(
+  "Good service",
+  "Excellent support",
+  "Good quality",
+  "Fast delivery",
+  "Excellent product"
+)
 
-barplot(table(feedback),
-        col="orange",
-        main="Customer Feedback",
-        xlab="Feedback",
-        ylab="Frequency")
+corpus <- Corpus(VectorSource(feedback))
+corpus <- tm_map(corpus, content_transformer(tolower))
+corpus <- tm_map(corpus, removePunctuation)
+corpus <- tm_map(corpus, removeNumbers)
+corpus <- tm_map(corpus, removeWords, stopwords("english"))
+
+tdm <- TermDocumentMatrix(corpus)
+m <- as.matrix(tdm)
+words <- rownames(m)
+freq <- rowSums(m)
+
+wordcloud(words,
+          freq,
+          min.freq=1,
+          random.order=FALSE,
+          colors=rainbow(length(words)))
